@@ -12,3 +12,4 @@ int add(int a, int b) {
 // Trigger workflow
 // Retry with updated config
 // Retry after IAM propagation delay
+// Retry with updated IAM policy
