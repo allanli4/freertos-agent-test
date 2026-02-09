@@ -1,0 +1,58 @@
+name: "AI Review - Agent Phase"
+on:
+  workflow_run:
+    workflows: ["AI Review - Misra Phase"]
+    types: [completed]
+
+env:
+  CPPCHECK_RESULT_FILE: cppcheck_misra
+
+jobs:
+  ai_review:
+    runs-on:
+      - codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          path: cloned
+          ref: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
+
+      - name: Download CppCheck Results
+        continue-on-error: true
+        uses: actions/download-artifact@v5
+        with:
+          name: misra-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Execute AI Review
+        env:
+          AGENT_RESRC_PATH: /var/task
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          FREERTOS_WEBSITE_KNOWLEDGE_BASE_ID: ${{ secrets.FREERTOS_WEBSITE_KNOWLEDGE_BASE_ID }}
+          WORKSPACE_PATH: ${{ github.workspace }}
+        run: |
+          if [ ! -f pr_number.txt ]; then
+            echo "Error: pr_number.txt not found. Check artifact download step."
+            exit 1
+          fi
+
+          PR_NUM=$(cat pr_number.txt)
+          REPO="${{ github.repository }}"
+          if [ -z "$PR_NUM" ] || [ -z "$REPO" ]; then
+            echo "Error: PR_NUMBER or REPOSITORY name is missing."
+            exit 1
+          fi
+
+          PR_URL="https://github.com/$REPO/pull/$PR_NUM"
+          agent \
+            --config-dir ${{ env.AGENT_RESRC_PATH }}/agent_config \
+            --query "Review the GitHub pull request at $PR_URL. If MISRA C 2012 compliance issues are detected, refer to the CppCheck scan results located at misra/${{ env.CPPCHECK_RESULT_FILE }}-filter.csv. The cloned source code for this pull request is available at cloned/ directory if you need additional context."

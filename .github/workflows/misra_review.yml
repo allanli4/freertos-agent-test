@@ -1,0 +1,49 @@
+name: "AI Review - Misra Phase"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+env:
+  CPPCHECK_RESULT_FILE: cppcheck_misra
+
+jobs:
+  misra_cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          path: cloned
+
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cppcheck
+          python3 -m venv .venv
+          .venv/bin/pip install -r ./cloned/.github/scripts/requirements.txt
+
+      - name: Run MISRA Analysis
+        env:
+          CPPCHECK_SCRIPTS_PATH: .github/scripts
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mkdir -p misra
+
+          .venv/bin/python3 ./cloned/${{ env.CPPCHECK_SCRIPTS_PATH }}/convert_misra_rules.py --cppcheck_suppress_file misra/cppcheck_misra.config
+          bash ./cloned/${{ env.CPPCHECK_SCRIPTS_PATH }}/cppcheck_misra.sh --source-dir cloned --commit-base ${{ env.PR_BASE }} --commit-target ${{ env.PR_HEAD }} --suppression-file misra/cppcheck_misra.config --output misra/${{ env.CPPCHECK_RESULT_FILE }}-full.xml
+          .venv/bin/python3 ./cloned/${{ env.CPPCHECK_SCRIPTS_PATH }}/filter_cppcheck_result.py --source-dir cloned --git-diff ${{ env.PR_BASE }}...${{ env.PR_HEAD }} --input misra/${{ env.CPPCHECK_RESULT_FILE }}-full.xml --output misra/${{ env.CPPCHECK_RESULT_FILE }}-filter.csv
+
+      - name: Save PR Number
+        run: echo ${{ github.event.pull_request.number }} > pr_number.txt
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v6
+        with:
+          name: misra-results
+          path: |
+            misra/${{ env.CPPCHECK_RESULT_FILE }}-filter.csv
+            pr_number.txt
