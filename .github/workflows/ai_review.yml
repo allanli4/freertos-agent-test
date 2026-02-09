@@ -10,7 +10,7 @@ env:
 jobs:
   ai_review:
     runs-on:
-      - codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+      - codebuild-freertos-pr-review-runner-${{ github.run_id }}-${{ github.run_attempt }}
     permissions:
       contents: read
       pull-requests: write
