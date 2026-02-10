@@ -17,3 +17,4 @@ int add(int a, int b) {
 // Test without filesystem MCP
 // Test with original config
 // Test with updated config
+// Test with updated config
