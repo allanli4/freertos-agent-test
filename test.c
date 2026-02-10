@@ -10,11 +10,4 @@ int add(int a, int b) {
     return a + b;
 }
 // Trigger workflow
-// Retry with updated config
-// Retry after IAM propagation delay
-// Retry with updated IAM policy
-// Retry with updated IAM policy
-// Test without filesystem MCP
-// Test with original config
-// Test with updated config
-// Test with updated config
+
