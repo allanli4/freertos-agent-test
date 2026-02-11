@@ -17,3 +17,4 @@ int add(int a, int b) {
 // Test with dummy KB secret
 // Test with filesystem MCP removed
 // Test with IAM update
+// Test with rebuilt image
