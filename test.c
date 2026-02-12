@@ -21,3 +21,4 @@ int add(int a, int b) {
 // Test with filesystem MCP enabled
 // Final test with fresh setup
 // Test with CloudWatch permissions
+// Test with ECR permissions
