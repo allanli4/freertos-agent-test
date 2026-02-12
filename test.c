@@ -18,3 +18,4 @@ int add(int a, int b) {
 // Test with filesystem MCP removed
 // Test with IAM update
 // Test with rebuilt image
+// Test with filesystem MCP enabled
