@@ -25,3 +25,4 @@ int add(int a, int b) {
 // Test with ECR permissions
 // Test with dumy secret
 // Fresh run with guardrail env vars
+// Fresh run without guardrail env vars
