@@ -23,3 +23,4 @@ int add(int a, int b) {
 // Test with CloudWatch permissions
 // Test with ECR permissions
 // Test with ECR permissions
+// Test with dumy secret
